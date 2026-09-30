@@ -73,8 +73,62 @@ def analyze_survey_answers(payload: dict) -> dict:
                 response_mime_type="application/json",
             ),
         )
-        return json.loads(response.text)
+
+        # ✅ 수정 1:
+        # 기존에는 Gemini 결과를 그대로 반환했음
+        # return json.loads(response.text)
+
+        # ✅ 수정:
+        # Gemini 결과를 먼저 변수에 저장
+        ai_result = json.loads(response.text)
+
+        # ✅ 수정:
+        # 최신 프론트가 원하는 형태로 변환해서 반환
+        return {
+            "investment_style": ai_result.get(
+                "investor_type",
+                "위험중립형"
+            ),
+            "risk_score": ai_result.get(
+                "risk_score",
+                50
+            ),
+            "analysis": {
+                "summary": ai_result.get(
+                    "summary",
+                    "사용자의 설문 응답을 바탕으로 투자 성향을 분석했습니다."
+                ),
+                "advice": ai_result.get(
+                    "advice",
+                    "분산 투자와 위험 관리를 고려하면서 모의투자를 시작해보세요."
+                ),
+                "learning_roadmap": ai_result.get(
+                    "learning_roadmap",
+                    [
+                        "주식 기초",
+                        "시장 지표 이해",
+                        "위험 관리"
+                    ]
+                )
+            }
+        }
+
     except Exception as e:
         print(f"최종 AI 오류: {e}")
-        # 프론트엔드가 에러 없이 다음 화면으로 넘어갈 수 있도록 기본 세팅
-        return {"investor_type": "위험중립형", "risk_score": 50, "summary": "AI 분석 지연으로 기본 성향이 부여되었습니다.", "advice": "기본 성향으로 모의투자를 시작해보세요.", "learning_roadmap": ["주식 기초", "시장 지표 이해", "위험 관리"]}
+
+        # ✅ 수정 2:
+        # 오류가 발생했을 때 반환하는 기본값도
+        # 최신 프론트가 원하는 investment_style / analysis 구조로 변경
+        return {
+            "investment_style": "위험중립형",
+            "risk_score": 50,
+            "analysis": {
+                "summary": "AI 분석 지연으로 기본 성향이 부여되었습니다.",
+                "advice": "기본 성향으로 모의투자를 시작해보세요.",
+                "learning_roadmap": [
+                    "주식 기초",
+                    "시장 지표 이해",
+                    "위험 관리"
+                ]
+            }
+        }
