@@ -32,12 +32,15 @@ def handle_survey_analysis(request: Dict[str, Any]):
         # 마이페이지에서 다시 볼 수 있도록 메모리(DEMO_STORAGE)에 결과 보관
         DEMO_STORAGE["latest_result"] = result
         
-        return {
-            "status": "success",
-            "data": result
-        }
+        return result
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/ai/survey")
+def get_survey_history():
+    # 프론트엔드에게 "아직 과거 설문 기록이 없어"라고 빈 배열을 돌려줍니다.
+    return []
 
 # -------------------------------------------------------------
 # 2. 마이페이지용 결과 불러오기 (메모리에서 꺼내기)
@@ -79,7 +82,7 @@ def mock_get_me():
     # 2. 만약 설문을 완료해서 메모리(DEMO_STORAGE)에 결과가 있다면?
     if "latest_result" in DEMO_STORAGE:
         # AI가 분석해준 투자 성향(예: 위험중립형)을 꺼내옵니다.
-        current_style = DEMO_STORAGE["latest_result"].get("investor_type", "위험중립형")
+        current_style = DEMO_STORAGE["latest_result"].get("investment_style", "위험중립형")
 
     return {
         "user_id": 1,
